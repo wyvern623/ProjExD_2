@@ -72,6 +72,8 @@ def main():
             vy *= -1
 
         screen.blit(bb_img, bb_rct)  # 爆弾を表示させる
+        if kk_rct.colliderect(bb_rct):
+            return
         pg.display.update()
         tmr += 1
         clock.tick(50)
