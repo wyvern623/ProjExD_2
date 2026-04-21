@@ -7,6 +7,7 @@ import pygame as pg
 
 
 WIDTH, HEIGHT = 1100, 650
+BB_ORIENTATION_NORM = math.sqrt(50)
 DELTA = {
     pg.K_UP: (0, -5),
     pg.K_DOWN: (0, 5),
@@ -126,7 +127,7 @@ def calc_orientation(
     if dist < 300:
         return current_xy
 
-    scale = math.sqrt(50) / dist
+    scale = BB_ORIENTATION_NORM / dist
     return dx * scale, dy * scale
 
 
