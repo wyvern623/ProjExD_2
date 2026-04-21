@@ -59,6 +59,24 @@ def gameover(screen: pg.Surface) -> None:
     time.sleep(5)
 
 
+def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
+    """10段階の爆弾Surfaceリストと加速度リストを初期化して返す。
+
+    爆弾は時間経過とともに半径10〜100px, 加速度1〜10倍まで段階的に変化する。
+
+    Returns:
+        (bb_imgs, bb_accs): 爆弾Surfaceのリストと加速度のリストのタプル。
+    """
+    bb_imgs: list[pg.Surface] = []
+    for r in range(1, 11):
+        bb_img = pg.Surface((20 * r, 20 * r), pg.SRCALPHA)
+        pg.draw.circle(bb_img, (255, 0, 0), (10 * r, 10 * r), 10 * r)
+        bb_imgs.append(bb_img)
+
+    bb_accs = [a for a in range(1, 11)]
+    return bb_imgs, bb_accs
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -74,6 +92,7 @@ def main():
     bb_rct.centerx = random.randint(0, WIDTH)  # 爆弾の初期横座標を設定する
     bb_rct.centery = random.randint(0, HEIGHT)  # 爆弾の初期縦座標を設定する
     vx, vy = +5, +5  # 爆弾の速度
+    bb_imgs, bb_accs = init_bb_imgs()
 
     clock = pg.time.Clock()
     tmr = 0
@@ -94,7 +113,14 @@ def main():
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
  
         screen.blit(kk_img, kk_rct)
-        bb_rct.move_ip(vx, vy)  # 爆弾を移動させる
+        level = min(tmr // 500, 9)
+        bb_img = bb_imgs[level]
+        bb_rct.width = bb_img.get_rect().width
+        bb_rct.height = bb_img.get_rect().height
+
+        avx = vx * bb_accs[level]
+        avy = vy * bb_accs[level]
+        bb_rct.move_ip(avx, avy)
         yoko, tate = check_bound(bb_rct)
         if not yoko:  # 横方向の判定
             vx *= -1
