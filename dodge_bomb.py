@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import random
 import pygame as pg
 
@@ -18,7 +19,7 @@ def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
     """
     引数：こうかとんRectまたは爆弾Rect
     戻り値：タプル（横方向判定結果，縦方向判定結果）
-    画面内ならTrue，画面外ならFalse
+    画面内ならTrue, 画面外ならFalse
     """
     yoko = True
     tate = True
@@ -27,6 +28,35 @@ def check_bound(obj_rct: pg.Rect) -> tuple[bool, bool]:
     if obj_rct.top < 0 or HEIGHT < obj_rct.bottom:
         tate = False
     return yoko, tate
+
+
+def gameover(screen: pg.Surface) -> None:
+    """ゲームオーバー画面を5秒間表示する。
+
+    画面をブラックアウトし，泣いているこうかとん画像と
+    「Game Over」の文字を重ねて表示する。
+
+    Args:
+        screen: 描画対象のメインSurface。
+    """
+    bb_surface = pg.Surface(screen.get_size())
+    pg.draw.rect(bb_surface, (0, 0, 0), bb_surface.get_rect())
+    bb_surface.set_alpha(200)
+
+    font = pg.font.SysFont("notosanscjkjp", 80)
+    txt_surface = font.render("Game Over", True, (255, 255, 255))
+    txt_rect = txt_surface.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
+    bb_surface.blit(txt_surface, txt_rect)
+
+    sad_kk = pg.transform.rotozoom(pg.image.load("fig/8.png"), 0, 0.9)
+    kk_rect = sad_kk.get_rect(center=(txt_rect.left - 60, screen.get_height() // 2))
+    bb_surface.blit(sad_kk, kk_rect)
+    kk_rect2 = sad_kk.get_rect(center=(txt_rect.right + 60, screen.get_height() // 2))
+    bb_surface.blit(sad_kk, kk_rect2)
+
+    screen.blit(bb_surface, (0, 0))
+    pg.display.update()
+    time.sleep(5)
 
 
 def main():
@@ -73,6 +103,7 @@ def main():
 
         screen.blit(bb_img, bb_rct)  # 爆弾を表示させる
         if kk_rct.colliderect(bb_rct):
+            gameover(screen)
             return
         pg.display.update()
         tmr += 1
