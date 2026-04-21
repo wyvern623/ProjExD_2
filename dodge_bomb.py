@@ -86,21 +86,19 @@ def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     Returns:
         移動量 (vx, vy) → 回転済みSurface の辞書。
     """
-    kk_base = pg.image.load("fig/3.png")
-
-    # (dx, dy) → 回転角度 (反時計回り，pygame座標系ではy軸が下向き)
-    directions: dict[tuple[int, int], float] = {
-        (0,   0):   0,
-        (+5,  0):   0,
-        (+5, -5):  45,
-        (0,  -5):  90,
-        (-5, -5): 135,
-        (-5,  0): 180,
-        (-5, +5): 225,
-        (0,  +5): 270,
-        (+5, +5): 315,
+    kk_base = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
+    kk_imgs = {
+        (0, 0):   pg.transform.rotozoom(kk_base, 0, 1.0),
+        (5, 0):   pg.transform.rotozoom(kk_base, 0, 1.0),
+        (5, -5):  pg.transform.rotozoom(kk_base, 45, 1.0),
+        (0, -5):  pg.transform.rotozoom(kk_base, 90, 1.0),
+        (-5, -5): pg.transform.rotozoom(kk_base, 135, 1.0),
+        (-5, 0):  pg.transform.rotozoom(kk_base, 180, 1.0),
+        (-5, 5):  pg.transform.rotozoom(kk_base, 225, 1.0),
+        (0, 5):   pg.transform.rotozoom(kk_base, 270, 1.0),
+        (5, 5):   pg.transform.rotozoom(kk_base, 315, 1.0),
     }
-    return {mv: pg.transform.rotozoom(kk_base, angle, 1.0) for mv, angle in directions.items()}
+    return kk_imgs
 
 
 def calc_orientation(
@@ -164,10 +162,11 @@ def main():
             if key_lst[key]:
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
-        kk_img = kk_imgs[tuple(sum_mv)]  # type: ignore[index]
-        kk_rct.move_ip(sum_mv)
+        mv = (sum_mv[0], sum_mv[1])
+        kk_img = kk_imgs[mv]
+        kk_rct.move_ip(mv)
         if check_bound(kk_rct) != (True, True):  # 画面外だったら
-            kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
+            kk_rct.move_ip(-mv[0], -mv[1])
  
         screen.blit(kk_img, kk_rct)
         level = min(tmr // 500, 9)
