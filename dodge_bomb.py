@@ -77,11 +77,37 @@ def init_bb_imgs() -> tuple[list[pg.Surface], list[int]]:
     return bb_imgs, bb_accs
 
 
+def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
+    """移動量タプルをキー, 対応する方向のこうかとんSurfaceを値とした辞書を返す。
+
+    こうかとんは移動方向に合わせて9方向に回転した画像を持つ。
+
+    Returns:
+        移動量 (vx, vy) → 回転済みSurface の辞書。
+    """
+    kk_base = pg.image.load("fig/0.png")
+
+    # (dx, dy) → 回転角度 (反時計回り，pygame座標系ではy軸が下向き)
+    directions: dict[tuple[int, int], float] = {
+        (0,   0):   0,
+        (+5,  0):   0,
+        (+5, -5):  45,
+        (0,  -5):  90,
+        (-5, -5): 135,
+        (-5,  0): 180,
+        (-5, +5): 225,
+        (0,  +5): 270,
+        (+5, +5): 315,
+    }
+    return {mv: pg.transform.rotozoom(kk_base, angle, 1.0) for mv, angle in directions.items()}
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load("fig/pg_bg.jpg")    
-    kk_img = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
+    kk_imgs = get_kk_imgs()
+    kk_img = kk_imgs[(0, 0)]
     kk_rct = kk_img.get_rect()
     kk_rct.center = 300, 200
 
@@ -108,6 +134,7 @@ def main():
             if key_lst[key]:
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
+        kk_img = kk_imgs[tuple(sum_mv)]  # type: ignore[index]
         kk_rct.move_ip(sum_mv)
         if check_bound(kk_rct) != (True, True):  # 画面外だったら
             kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
