@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import random
+import math
 import pygame as pg
 
 
@@ -102,6 +103,35 @@ def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     return {mv: pg.transform.rotozoom(kk_base, angle, 1.0) for mv, angle in directions.items()}
 
 
+def calc_orientation(
+    org: pg.Rect,
+    dst: pg.Rect,
+    current_xy: tuple[float, float],
+) -> tuple[float, float]:
+    """爆弾がこうかとんへ向かう正規化済み方向ベクトルを返す。
+
+    距離が300未満のときは慣性（current_xy）をそのまま返し,
+    急接近によるゲームオーバーを防ぐ。速度ベクトルのノルムは√50。
+
+    Args:
+        org: 爆弾のRect（移動元）。
+        dst: こうかとんのRect（目標）。
+        current_xy: 現在の移動方向ベクトル (vx, vy)。
+
+    Returns:
+        新しい方向ベクトル (vx, vy)。
+    """
+    dx = dst.centerx - org.centerx
+    dy = dst.centery - org.centery
+    dist = math.hypot(dx, dy)
+
+    if dist < 300:
+        return current_xy
+
+    scale = math.sqrt(50) / dist
+    return dx * scale, dy * scale
+
+
 def main():
     pg.display.set_caption("逃げろ！こうかとん")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -117,7 +147,7 @@ def main():
     bb_rct = bb_img.get_rect()
     bb_rct.centerx = random.randint(0, WIDTH)  # 爆弾の初期横座標を設定する
     bb_rct.centery = random.randint(0, HEIGHT)  # 爆弾の初期縦座標を設定する
-    vx, vy = +5, +5  # 爆弾の速度
+    bb_vxy = (+5.0, +5.0)  # 爆弾の速度ベクトル
     bb_imgs, bb_accs = init_bb_imgs()
 
     clock = pg.time.Clock()
@@ -145,6 +175,8 @@ def main():
         bb_rct.width = bb_img.get_rect().width
         bb_rct.height = bb_img.get_rect().height
 
+        bb_vxy = calc_orientation(bb_rct, kk_rct, bb_vxy)
+        vx, vy = bb_vxy
         avx = vx * bb_accs[level]
         avy = vy * bb_accs[level]
         bb_rct.move_ip(avx, avy)
@@ -153,6 +185,7 @@ def main():
             vx *= -1
         if not tate:  # 縦方向の判定
             vy *= -1
+        bb_vxy = (vx, vy)
 
         screen.blit(bb_img, bb_rct)  # 爆弾を表示させる
         if kk_rct.colliderect(bb_rct):
