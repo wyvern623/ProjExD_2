@@ -86,7 +86,7 @@ def get_kk_imgs() -> dict[tuple[int, int], pg.Surface]:
     Returns:
         移動量 (vx, vy) → 回転済みSurface の辞書。
     """
-    kk_base = pg.image.load("fig/0.png")
+    kk_base = pg.image.load("fig/3.png")
 
     # (dx, dy) → 回転角度 (反時計回り，pygame座標系ではy軸が下向き)
     directions: dict[tuple[int, int], float] = {
