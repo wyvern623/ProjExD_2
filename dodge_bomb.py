@@ -60,9 +60,18 @@ def main():
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
         kk_rct.move_ip(sum_mv)
+        if check_bound(kk_rct) != (True, True):  # 画面外だったら
+            kk_rct.move_ip(-sum_mv[0], -sum_mv[1])
+ 
         screen.blit(kk_img, kk_rct)
-        bb_rct.move_ip(vx, vy)
-        screen.blit(bb_img, bb_rct)  # 爆弾を描画する
+        bb_rct.move_ip(vx, vy)  # 爆弾を移動させる
+        yoko, tate = check_bound(bb_rct)
+        if not yoko:  # 横方向の判定
+            vx *= -1
+        if not tate:  # 縦方向の判定
+            vy *= -1
+
+        screen.blit(bb_img, bb_rct)  # 爆弾を表示させる
         pg.display.update()
         tmr += 1
         clock.tick(50)
